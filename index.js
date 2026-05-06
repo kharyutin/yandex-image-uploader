@@ -13,7 +13,7 @@ app.get("/upload", async (req, res) => {
       return res.json({ error: "Missing params" });
     }
 
-    // 🔥 СКАЧИВАЕМ КАРТИНКУ ЧЕРЕЗ fetch (НЕ axios)
+    // 🔥 скачиваем картинку
     const responseImage = await fetch(imageUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0"
@@ -27,9 +27,8 @@ app.get("/upload", async (req, res) => {
     const arrayBuffer = await responseImage.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    // 🔥 ОТПРАВКА В ЯНДЕКС (axios остаётся)
+    // 🔥 отправка в Яндекс
     const response = await axios.post(
-      console.log("YANDEX RESPONSE:", JSON.stringify(response.data));
       "https://api.direct.yandex.com/json/v5/adimages",
       {
         method: "add",
@@ -46,15 +45,25 @@ app.get("/upload", async (req, res) => {
       }
     );
 
+    // 🔥 ВАЖНО: лог ответа
+    console.log("YANDEX RESPONSE:", JSON.stringify(response.data));
+
+    // 🔥 защита от ошибки
+    if (!response.data.result || !response.data.result.AddResults) {
+      return res.json({
+        error: response.data
+      });
+    }
+
     res.json({
       hash: response.data.result.AddResults[0].ImageHash
     });
 
   } catch (e) {
-    console.log("ERROR:", e.message);
+    console.log("ERROR:", e.response?.data || e.message);
 
     res.json({
-      error: e.message
+      error: e.response?.data || e.message
     });
   }
 });
