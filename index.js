@@ -61,12 +61,16 @@ console.log("FULL RESPONSE:", JSON.stringify(response.data));
     });
 
   } catch (e) {
-    console.log("ERROR:", e.response?.data || e.message);
 
-    res.json({
-      error: e.response?.data || e.message
-    });
-  }
+  const errorData = e.response?.data;
+  const errorText = e.response?.status + " " + e.message;
+
+  console.log("ERROR FULL:", errorData || errorText);
+
+  res.json({
+    error: errorData || errorText
+  });
+}
 });
 
 app.get("/", (req, res) => {
