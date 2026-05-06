@@ -27,24 +27,28 @@ app.get("/upload", async (req, res) => {
 
     // 🔥 отправка в Яндекс
     const response = await axios.post(
-      "https://api.direct.yandex.com/json/v5/adimages",
-      {
-        method: "add",
-        params: {
-         AdImages: [{
-  ImageData: base64,
-Name: "img_" + Math.floor(Math.random() * 1000000)
-}]
-        }
-      },
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-          "Client-Login": login,
-          "Accept-Language": "ru"
-        }
-      }
-    );
+  "https://api.direct.yandex.com/json/v5/adimages",
+  {
+    method: "add",
+    params: {
+      AdImages: [{
+        ImageData: base64,
+        Name: "img_" + Math.floor(Math.random() * 1000000)
+      }]
+    }
+  },
+  {
+    headers: {
+      Authorization: "Bearer " + token,
+      "Client-Login": login,
+      "Accept-Language": "ru"
+    },
+    validateStatus: () => true
+  }
+);
+
+console.log("STATUS:", response.status);
+console.log("FULL RESPONSE:", JSON.stringify(response.data));
 
     console.log("YANDEX RESPONSE:", JSON.stringify(response.data));
 
