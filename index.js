@@ -33,7 +33,7 @@ app.get("/upload", async (req, res) => {
         params: {
          AdImages: [{
   ImageData: base64,
-  Name: "img_" + Date.now()
+Name: "img_" + Math.floor(Math.random() * 1000000)
 }]
         }
       },
