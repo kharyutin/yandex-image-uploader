@@ -45,10 +45,6 @@ const response = await axios.post(
     validateStatus: () => true
   }
 );
-
-console.log("STATUS:", response.status);
-console.log("FULL RESPONSE:", JSON.stringify(response.data));
-
 console.log("STATUS:", response.status);
 console.log("FULL RESPONSE:", JSON.stringify(response.data));
 
