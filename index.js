@@ -13,9 +13,21 @@ app.get("/upload", async (req, res) => {
       return res.json({ error: "Missing params" });
     }
 
-    const image = await axios.get(imageUrl, { responseType: "arraybuffer" });
-    const base64 = Buffer.from(image.data).toString("base64");
+    // 🔥 СКАЧИВАЕМ КАРТИНКУ ЧЕРЕЗ fetch (НЕ axios)
+    const responseImage = await fetch(imageUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0"
+      }
+    });
 
+    if (!responseImage.ok) {
+      throw new Error("Ошибка загрузки изображения: " + responseImage.status);
+    }
+
+    const arrayBuffer = await responseImage.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+    // 🔥 ОТПРАВКА В ЯНДЕКС (axios остаётся)
     const response = await axios.post(
       "https://api.direct.yandex.com/json/v5/images",
       {
@@ -38,47 +50,10 @@ app.get("/upload", async (req, res) => {
     });
 
   } catch (e) {
-    res.json({
-      error: e.response?.data || e.message
-    });
-  }
-});
-
-app.get("/upload", async (req, res) => {
-  try {
-    const imageUrl = req.query.url;
-
-    if (!imageUrl) {
-      return res.json({ error: "No URL" });
-    }
-
-    const image = await axios.get(imageUrl, { responseType: "arraybuffer" });
-    const base64 = Buffer.from(image.data).toString("base64");
-
-    const response = await axios.post(
-      "https://api.direct.yandex.com/json/v5/images",
-      {
-        method: "add",
-        params: {
-          Images: [{ ImageData: base64 }]
-        }
-      },
-      {
-        headers: {
-          Authorization: "Bearer " + TOKEN,
-          "Client-Login": LOGIN,
-          "Accept-Language": "ru"
-        }
-      }
-    );
+    console.log("ERROR:", e.message);
 
     res.json({
-      hash: response.data.result.AddResults[0].ImageHash
-    });
-
-  } catch (e) {
-    res.json({
-      error: e.response?.data || e.message
+      error: e.message
     });
   }
 });
