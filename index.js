@@ -13,19 +13,17 @@ app.get("/upload", async (req, res) => {
       return res.json({ error: "Missing params" });
     }
 
-    // 🔥 скачиваем картинку
-    const responseImage = await fetch(imageUrl, {
+    // 🔥 правильное скачивание через axios
+    const image = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+      maxRedirects: 5,
       headers: {
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "*/*"
       }
     });
 
-    if (!responseImage.ok) {
-      throw new Error("Ошибка загрузки изображения: " + responseImage.status);
-    }
-
-    const arrayBuffer = await responseImage.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const base64 = Buffer.from(image.data).toString("base64");
 
     // 🔥 отправка в Яндекс
     const response = await axios.post(
@@ -45,10 +43,8 @@ app.get("/upload", async (req, res) => {
       }
     );
 
-    // 🔥 ВАЖНО: лог ответа
     console.log("YANDEX RESPONSE:", JSON.stringify(response.data));
 
-    // 🔥 защита от ошибки
     if (!response.data.result || !response.data.result.AddResults) {
       return res.json({
         error: response.data
