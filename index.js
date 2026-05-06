@@ -13,7 +13,7 @@ app.get("/upload", async (req, res) => {
       return res.json({ error: "Missing params" });
     }
 
-    // 🔥 правильное скачивание через axios
+    // 🔥 скачивание картинки
     const image = await axios.get(imageUrl, {
       responseType: "arraybuffer",
       maxRedirects: 5,
@@ -26,51 +26,58 @@ app.get("/upload", async (req, res) => {
     const base64 = Buffer.from(image.data).toString("base64");
 
     // 🔥 отправка в Яндекс
-const response = await axios.post(
-  "https://api.direct.yandex.com/json/v5/images",
-  {
-    method: "add",
-    params: {
-      Images: [{
-        ImageData: base64
-      }]
-    }
-  },
-  {
-    headers: {
-      Authorization: "Bearer " + token,
-      "Client-Login": login,
-      "Accept-Language": "ru"
-    },
-    validateStatus: () => true
-  }
-);
-console.log("STATUS:", response.status);
-console.log("FULL RESPONSE:", JSON.stringify(response.data));
+    const response = await axios.post(
+      "https://api.direct.yandex.com/json/v5/images",
+      {
+        method: "add",
+        params: {
+          Images: [{
+            ImageData: base64
+          }]
+        }
+      },
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+          "Client-Login": login,
+          "Accept-Language": "ru"
+        },
+        validateStatus: () => true,
+        responseType: "text"
+      }
+    );
 
-    console.log("YANDEX RESPONSE:", JSON.stringify(response.data));
+    // 🔥 ЛОГ
+    console.log("STATUS:", response.status);
+    console.log("RAW RESPONSE:", response.data);
 
-    if (!response.data.result || !response.data.result.AddResults) {
+    // 🔥 если JSON — парсим
+    let parsed;
+    try {
+      parsed = JSON.parse(response.data);
+    } catch {
       return res.json({
         error: response.data
       });
     }
 
+    if (!parsed.result || !parsed.result.AddResults) {
+      return res.json({
+        error: parsed
+      });
+    }
+
     res.json({
-      hash: response.data.result.AddResults[0].ImageHash
+      hash: parsed.result.AddResults[0].ImageHash
     });
 
   } catch (e) {
+    console.log("ERROR FULL:", e.response?.data || e.message);
 
-  const errorData = e.response?.data;
-  const errorText = e.response?.status + " " + e.message;
-
-  console.log("ERROR FULL:", errorData || errorText);
-
-  res.json({
-    error: errorData || errorText
-  });
-}
+    res.json({
+      error: e.response?.data || e.message
+    });
+  }
 });
 
 app.get("/", (req, res) => {
