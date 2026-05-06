@@ -3,8 +3,46 @@ import axios from "axios";
 
 const app = express();
 
-const TOKEN = process.env.TOKEN;
-const LOGIN = process.env.LOGIN;
+app.get("/upload", async (req, res) => {
+  try {
+    const imageUrl = req.query.url;
+    const token = req.query.token;
+    const login = req.query.login;
+
+    if (!imageUrl || !token || !login) {
+      return res.json({ error: "Missing params" });
+    }
+
+    const image = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    const base64 = Buffer.from(image.data).toString("base64");
+
+    const response = await axios.post(
+      "https://api.direct.yandex.com/json/v5/images",
+      {
+        method: "add",
+        params: {
+          Images: [{ ImageData: base64 }]
+        }
+      },
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+          "Client-Login": login,
+          "Accept-Language": "ru"
+        }
+      }
+    );
+
+    res.json({
+      hash: response.data.result.AddResults[0].ImageHash
+    });
+
+  } catch (e) {
+    res.json({
+      error: e.response?.data || e.message
+    });
+  }
+});
 
 app.get("/upload", async (req, res) => {
   try {
