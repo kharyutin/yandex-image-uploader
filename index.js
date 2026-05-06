@@ -26,14 +26,13 @@ app.get("/upload", async (req, res) => {
     const base64 = Buffer.from(image.data).toString("base64");
 
     // 🔥 отправка в Яндекс
-    const response = await axios.post(
-  "https://api.direct.yandex.com/json/v5/adimages",
+const response = await axios.post(
+  "https://api.direct.yandex.com/json/v5/images",
   {
     method: "add",
     params: {
-      AdImages: [{
-        ImageData: base64,
-        Name: "img_" + Math.floor(Math.random() * 1000000)
+      Images: [{
+        ImageData: base64
       }]
     }
   },
@@ -46,6 +45,9 @@ app.get("/upload", async (req, res) => {
     validateStatus: () => true
   }
 );
+
+console.log("STATUS:", response.status);
+console.log("FULL RESPONSE:", JSON.stringify(response.data));
 
 console.log("STATUS:", response.status);
 console.log("FULL RESPONSE:", JSON.stringify(response.data));
