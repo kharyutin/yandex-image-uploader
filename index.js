@@ -29,6 +29,7 @@ app.get("/upload", async (req, res) => {
 
     // 🔥 ОТПРАВКА В ЯНДЕКС (axios остаётся)
     const response = await axios.post(
+      console.log("YANDEX RESPONSE:", JSON.stringify(response.data));
       "https://api.direct.yandex.com/json/v5/adimages",
       {
         method: "add",
