@@ -31,7 +31,7 @@ app.get("/upload", async (req, res) => {
       {
         method: "add",
         params: {
-          Images: [{ ImageData: base64 }]
+          AdImages: [{ ImageData: base64 }]
         }
       },
       {
