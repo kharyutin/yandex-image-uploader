@@ -1,6 +1,5 @@
 import express from "express";
 import axios from "axios";
-import FormData from "form-data";
 
 const app = express();
 
@@ -23,38 +22,37 @@ app.get("/upload", async (req, res) => {
       }
     });
 
-    // 🔥 формируем multipart
-    const form = new FormData();
-    form.append("file", image.data, {
-      filename: "image.jpg"
-    });
+    const base64 = Buffer.from(image.data).toString("base64");
 
-    // 🔥 v4 upload
+    // 🔥 ВАЖНО — правильный v4 endpoint
     const response = await axios.post(
-      "https://api.direct.yandex.com/live/v4/json/",
+      "https://api.direct.yandex.com/json/v5/images",
       {
-        method: "UploadImage",
-        token: token,
-        param: {
-          ImageData: Buffer.from(image.data).toString("base64")
+        method: "add",
+        params: {
+          Images: [{
+            ImageData: base64
+          }]
         }
       },
       {
         headers: {
+          Authorization: "Bearer " + token,
           "Client-Login": login,
           "Accept-Language": "ru"
-        }
+        },
+        validateStatus: () => true
       }
     );
 
     console.log("YANDEX RESPONSE:", response.data);
 
-    if (!response.data || !response.data.data) {
+    if (!response.data.result) {
       return res.json({ error: response.data });
     }
 
     res.json({
-      hash: response.data.data.ImageHash
+      hash: response.data.result.AddResults[0].ImageHash
     });
 
   } catch (e) {
